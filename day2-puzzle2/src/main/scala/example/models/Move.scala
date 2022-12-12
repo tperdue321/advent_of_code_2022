@@ -3,9 +3,14 @@ package example.models
 trait Move {
   def play(opponent: Move): GameResult
   val value: Int
+  val beats: Move
+  val loses: Move
 }
 
 final case object Rock extends Move {
+  override val beats: Move = Scissors
+  override val loses: Move = Paper
+
   override def play(opponent: Move): GameResult = {
     opponent match {
       case Rock => Draw
@@ -16,6 +21,8 @@ final case object Rock extends Move {
   val value: Int = 1
 }
 final case object Paper extends Move {
+  override val beats: Move = Rock
+  override val loses: Move = Scissors
   override def play(opponent: Move): GameResult = {
     opponent match {
       case Rock => Win
@@ -26,6 +33,8 @@ final case object Paper extends Move {
   val value: Int = 2
 }
 final case object Scissors extends Move {
+  override val beats: Move = Paper
+  override val loses: Move = Rock
   override def play(opponent: Move): GameResult = {
     opponent match {
       case Rock => Loss
@@ -35,10 +44,3 @@ final case object Scissors extends Move {
   }
   val value: Int = 3
 }
-
-final case object NoMove extends Move {
-  override def play(opponent: Move): GameResult = NotPlayed
-  val value: Int = 0
-}
-
-

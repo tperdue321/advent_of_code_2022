@@ -11,18 +11,27 @@ final case class Game(opponent: Move, player: Move) extends AdventData {
 }
 
 object Game {
-  def createGame(opponent: String, player: String): Option[Game] = {
+  def createGame(opponent: String, playerChoice: String): Option[Game] = {
     for {
-      op <- createMove(opponent)
-      pl <- createMove(player)
+      op <- createOpponentMove(opponent)
+      pl <- createPlayerMove(playerChoice, op)
     } yield Game(op, pl)
   }
 
-  def createMove(move: String): Option[Move] = {
+  def createOpponentMove(move: String): Option[Move] = {
     move match {
-      case "A" | "X" => Some(Rock)
-      case "B" | "Y" => Some(Paper)
-      case "C" | "Z" => Some(Scissors)
+      case "A" => Some(Rock)
+      case "B" => Some(Paper)
+      case "C" => Some(Scissors)
+      case _ => None
+    }
+  }
+
+  def createPlayerMove(playerChoice: String, op: Move): Option[Move] = {
+    playerChoice match {
+      case "X" => Some(op.beats)
+      case "Y" => Some(op)
+      case "Z" => Some(op.loses)
       case _ => None
     }
   }

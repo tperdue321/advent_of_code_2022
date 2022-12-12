@@ -12,7 +12,3 @@ final case object Draw extends  GameResult {
 final case object Win extends  GameResult {
   val score: Int = 6
 }
-
-final case object NotPlayed extends GameResult {
-  val score: Int = 0
-}
