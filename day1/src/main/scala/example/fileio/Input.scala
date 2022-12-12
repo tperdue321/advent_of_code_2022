@@ -37,7 +37,6 @@ case class Input(filePath: String) {
   @tailrec
   private[this] def iterate(value: String, input: List[String], prevElf: Option[Elf],
                       ingest: (Option[Int], Option[Elf]) => Option[Elf], output: List[Elf] = List()
-  // ): List[Elf]  = {
   ): List[Elf]  = {
     // We are adding data to the prevElf if more data for the elf exists in the file
     // Otherwise we need to create a new elf and append the previous elf to the output
