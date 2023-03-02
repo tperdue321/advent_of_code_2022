@@ -19,14 +19,7 @@ final case class MapRucksack[K, V: Ordering: Semigroup](compartment1: Map[K, V],
   def max: (K,V) = combineCompartments.maxBy{ case (k,v) => v }
 }
 
-// trait RucksackDupsFoldable extends Foldable[RucksackDups] with Monoid[RucksackDups[_]] {
-//   override def foldLeft[A, B](fa: RucksackDups[A], b: B)(f: (B, A) => B): B = ???
-//   override def combine(x: RucksackDups[_], y: RucksackDups[_]): RucksackDups[_] = ???
-//   override def empty: RucksackDups[_] = RucksackDups('!', )
-// }
-
 final case class RucksackDups[V](key: Char, value: V)
-
 
 trait MapRucksackSemigroup extends Semigroup[MapRucksack[Char,Int]] {
   override def combine(x: MapRucksack[Char, Int], y: MapRucksack[Char,Int]): MapRucksack[Char,Int] = {

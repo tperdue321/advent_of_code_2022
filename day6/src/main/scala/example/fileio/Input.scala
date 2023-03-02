@@ -5,11 +5,13 @@ import cats.effect.{IO, Resource}
 import cats.implicits._
 
 import scala.annotation.tailrec
-import scala.Predef._
+import scala.util.Either
 import scala.util.Try
-import example.models.MapRucksack
+import example.models.{Packet, PacketStartMarker}
 
-case class Input(filePath: String) {
+
+case class Input(filePath: String, reader: PacketReader = new PacketReaderImpl) {
+  type StartFound = Boolean
 
   def inputSource(): Resource[IO, BufferedSource] = {
     Resource.make {
@@ -21,27 +23,40 @@ case class Input(filePath: String) {
     }
   }
 
-  def readFromSource(): IO[List[(Char, Int)]] = {
+  def readFromSource(): IO[PacketStartMarker] = {
     inputSource().use { source =>
       IO.blocking(source.getLines()).map { iterator =>
-        val h :: t = iterator.toList
-        iterate(h, t,  ingest, List())
-      }.handleErrorWith(_ => IO.pure(List()))
+        iterator.foldLeft(PacketStartMarker(Vector(), 0, None)) { (startMarker, nextLine) =>
+          val input = LazyList.from(nextLine)
+//
+          input.foldM(startMarker){
+            case (m, nextChar) => {
+              val nextMarker = reader.read(m, Packet(nextChar, m))
+              if (reader.isStart(nextMarker)) {
+                Either.left(nextMarker)
+              } else {
+                Either.right(nextMarker)
+              }
+            }
+          }.merge
+        }
+      }.handleErrorWith(e => {
+        println(e)
+        IO.pure(PacketStartMarker(Vector(), 0, None))
+      })
     }
   }
 
-  @tailrec
-  private[this] def iterate(value: String, input: List[String], 
-                      ingest: (List[Char]) => (Char, Int), output: List[(Char, Int)] = List()
-  ): List[(Char, Int)]  = {
-    val appendedOutput = output :+ ingest(value.toCharArray().toList)
-    input match  {
-      case head :: tail => iterate(head, tail, ingest, appendedOutput)
-      case Nil => appendedOutput
-    }
-  }
 
-  def ingest(rucksack: List[Char]): (Char, Int) = {
-    MapRucksack.createCharIntMapRucksack(rucksack).max
-  }
+
+//  @tailrec
+//  private[this] def iterate(nextVal: Char, input: LazyList[Char],
+//                      ingest: (List[Char]) => (Char, Int), output: List[(Char, Int)] = List()
+//  ): List[(Char, Int)]  = {
+//    val appendedOutput = output :+ ingest(value.toCharArray().toList)
+//    input match  {
+//      case head :: tail => iterate(head, tail, ingest, appendedOutput)
+//      case Nil => appendedOutput
+//    }
+//  }
 }
