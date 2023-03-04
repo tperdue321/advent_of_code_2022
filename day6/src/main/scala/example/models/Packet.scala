@@ -11,7 +11,7 @@ trait PacketEq extends Eq[Packet] {
 }
 object Packet {
   implicit object packetEq extends PacketEq
-  def apply(char: Char, marker: PacketStartMarker): Packet = {
+  def apply(char: Char, marker: StartMarker): Packet = {
     new Packet(char, marker.position + 1)
   }
 }

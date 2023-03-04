@@ -8,9 +8,11 @@ import scala.annotation.tailrec
 import scala.util.Either
 import scala.util.Try
 import example.models.{Packet, PacketStartMarker}
+import example.models.MessageStartMarker
 
 
-case class Input(filePath: String, reader: PacketReader = new PacketReaderImpl) {
+// case class Input(filePath: String, reader: Reader[PacketStartMarker] = new PacketStartReader) {
+case class Input(filePath: String, reader: Reader[MessageStartMarker] = new MessageStartReader) {
   type StartFound = Boolean
 
   def inputSource(): Resource[IO, BufferedSource] = {
@@ -23,14 +25,17 @@ case class Input(filePath: String, reader: PacketReader = new PacketReaderImpl) 
     }
   }
 
-  def readFromSource(): IO[PacketStartMarker] = {
+  // def readFromSource(): IO[PacketStartMarker] = {
+  def readFromSource(): IO[MessageStartMarker] = {
     inputSource().use { source =>
       IO.blocking(source.getLines()).map { iterator =>
-        iterator.foldLeft(PacketStartMarker(Vector(), 0, None)) { (startMarker, nextLine) =>
+        // iterator.foldLeft(PacketStartMarker(Vector(), 0, None)) { (startMarker, nextLine) =>
+        iterator.foldLeft(MessageStartMarker(Vector(), 0, None)) { (startMarker, nextLine) =>
           val input = LazyList.from(nextLine)
 //
           input.foldM(startMarker){
             case (m, nextChar) => {
+              // val nextMarker = reader.read(m, Packet[PacketStartMarker](nextChar, m))
               val nextMarker = reader.read(m, Packet(nextChar, m))
               if (reader.isStart(nextMarker)) {
                 Either.left(nextMarker)
@@ -42,7 +47,8 @@ case class Input(filePath: String, reader: PacketReader = new PacketReaderImpl) 
         }
       }.handleErrorWith(e => {
         println(e)
-        IO.pure(PacketStartMarker(Vector(), 0, None))
+        // IO.pure(PacketStartMarker(Vector(), 0, None))
+        IO.pure(MessageStartMarker(Vector(), 0, None))
       })
     }
   }
